@@ -1,0 +1,1 @@
+docker-compose -f milvus-standalone-docker-compose.yml up milvus-standalone-docker-compose.yml
