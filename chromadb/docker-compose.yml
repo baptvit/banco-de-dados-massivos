@@ -1,0 +1,29 @@
+version: "3.8"
+
+networks:
+  net:
+    driver: bridge
+
+services:
+  chromadb:
+    image: chromadb/chroma:0.5.0  # Replace with specific version if needed
+    ports:
+      - "8001:8000"  # Exposes port 8000 of container to 8000 of host machine
+    volumes:
+      - chroma-data:/chroma/chroma  # Persistent storage for ChromaDB data
+    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+    environment:
+      - IS_PERSISTENT=TRUE
+    restart: unless-stopped # possible values are: "no", always", "on-failure", "unless-stopped"
+    healthcheck:
+      # Adjust below to match your container port
+      test: [ "CMD", "curl", "-f", "http://localhost:8001/api/v1/heartbeat" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - net
+
+volumes:
+  chroma-data: # Creates a named volume for persistence
+    driver: local
