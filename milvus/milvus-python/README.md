@@ -55,3 +55,5 @@ Este projeto está sob a Licença MIT.
 ### Contato
 
 Para dúvidas ou sugestões, entre em contato conosco.
+
+poetry run cmdbench --print-averages --save-plot=plot.png python ./milvus_python/run/run_setup.py
