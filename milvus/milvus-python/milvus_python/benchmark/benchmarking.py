@@ -1,42 +1,28 @@
 import time
 import psutil
+import logging
 
-def benchmark_script(script_func):
-  """
-  Executes a script function and gathers benchmarking information.
 
-  Args:
-      script_func: The function representing the script to be benchmarked.
+def all_in_one_profile(func):
+    """Decorator that measures execution time, memory usage, and CPU usage (may be platform-specific)."""
 
-  Returns:
-      A dictionary containing benchmarking information (time, memory usage, CPU usage).
-  """
-  memory_before = psutil.Process().memory_info().rss  # Resident memory before
-  cpu_usage_before = psutil.cpu_percent()  # CPU usage before
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        start_cpu_usage = psutil.cpu_percent()
 
-  start_time = time.perf_counter()
-  script_func()
-  end_time = time.perf_counter()
+        result = func(*args, **kwargs)
 
-  memory_after = psutil.Process().memory_info().rss  # Resident memory after
-  cpu_usage_after = psutil.cpu_percent()  # CPU usage after
+        end_time = time.perf_counter()
+        end_cpu_usage = psutil.cpu_percent()
 
-  execution_time = end_time - start_time
-  memory_used = memory_after - memory_before
-  cpu_usage_increase = cpu_usage_after - cpu_usage_before
+        elapsed_time = end_time - start_time
+        cpu_usage_change = end_cpu_usage - start_cpu_usage
 
-  return {
-      "time": execution_time,
-      "memory_usage": memory_used,
-      "cpu_usage": cpu_usage_increase,
-  }
+        logging.info(f"{func.__name__} took {elapsed_time} seconds to execute")
+        # logging.info(f"{func.__name__} peak memory usage: {memory_usage:.2f} MB")
+        logging.info(
+            f"{func.__name__} caused CPU usage to increase by {cpu_usage_change}%"
+        )
+        return result
 
-# Example usage
-def your_script_function():
-  # Your script logic here
-  pass
-
-results = benchmark_script(your_script_function)
-print(f"Time taken: {results['time']:.4f} seconds")
-print(f"Memory used: {results['memory_usage']:,} bytes")
-print(f"CPU usage increase: {results['cpu_usage']:.2f}%")
+    return wrapper

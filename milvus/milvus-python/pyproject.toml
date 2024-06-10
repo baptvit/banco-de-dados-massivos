@@ -10,6 +10,13 @@ python = "^3.11"
 numpy = "^1.26.4"
 setuptools = "^70.0.0"
 pymilvus = "^2.4.3"
+psutil = "^5.9.8"
+memory-profiler = "^0.61.0"
+black = "^24.4.2"
+matplotlib = "^3.9.0"
+pandas = "^2.2.2"
+pydelta = "^1.7.0"
+pyarrow = "^16.1.0"
 
 
 [build-system]

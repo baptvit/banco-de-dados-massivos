@@ -12,7 +12,9 @@ import numpy as np
 from pymilvus import (
     connections,
     utility,
-    FieldSchema, CollectionSchema, DataType,
+    FieldSchema,
+    CollectionSchema,
+    DataType,
     Collection,
 )
 
@@ -30,7 +32,7 @@ num_entities, dim = 3000, 8
 # Note: the `using` parameter of the following methods is default to "default".
 print(fmt.format("start connecting to Milvus"))
 connections.connect("default", host="localhost", port="19530")
-
+connections.list_connections()
 has = utility.has_collection("hello_milvus")
 print(f"Does collection hello_milvus exist in Milvus: {has}")
 breakpoint()
@@ -48,12 +50,20 @@ breakpoint()
 # |3|"embeddings"| FloatVector|     dim=8        |  "float vector with dim 8"   |
 # +-+------------+------------+------------------+------------------------------+
 fields = [
-    FieldSchema(name="pk", dtype=DataType.VARCHAR, is_primary=True, auto_id=False, max_length=100),
+    FieldSchema(
+        name="pk",
+        dtype=DataType.VARCHAR,
+        is_primary=True,
+        auto_id=False,
+        max_length=100,
+    ),
     FieldSchema(name="random", dtype=DataType.DOUBLE),
-    FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=dim)
+    FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=dim),
 ]
 
-schema = CollectionSchema(fields, "hello_milvus is the simplest demo to introduce the APIs")
+schema = CollectionSchema(
+    fields, "hello_milvus is the simplest demo to introduce the APIs"
+)
 
 print(fmt.format("Create collection `hello_milvus`"))
 hello_milvus = Collection("hello_milvus", schema, consistency_level="Strong")
@@ -73,13 +83,17 @@ entities = [
     # provide the pk field because `auto_id` is set to False
     [str(i) for i in range(num_entities)],
     rng.random(num_entities).tolist(),  # field random, only supports list
-    rng.random((num_entities, dim)),    # field embeddings, supports numpy.ndarray and list
+    rng.random(
+        (num_entities, dim)
+    ),  # field embeddings, supports numpy.ndarray and list
 ]
 
 insert_result = hello_milvus.insert(entities)
 
 hello_milvus.flush()
-print(f"Number of entities in Milvus: {hello_milvus.num_entities}")  # check the num_entites
+print(
+    f"Number of entities in Milvus: {hello_milvus.num_entities}"
+)  # check the num_entites
 breakpoint()
 ################################################################################
 # 4. create index
@@ -116,7 +130,9 @@ search_params = {
 }
 
 start_time = time.time()
-result = hello_milvus.search(vectors_to_search, "embeddings", search_params, limit=3, output_fields=["random"])
+result = hello_milvus.search(
+    vectors_to_search, "embeddings", search_params, limit=3, output_fields=["random"]
+)
 end_time = time.time()
 
 for hits in result:
@@ -138,7 +154,9 @@ breakpoint()
 # -----------------------------------------------------------------------------
 # pagination
 r1 = hello_milvus.query(expr="random > 0.5", limit=4, output_fields=["random"])
-r2 = hello_milvus.query(expr="random > 0.5", offset=1, limit=3, output_fields=["random"])
+r2 = hello_milvus.query(
+    expr="random > 0.5", offset=1, limit=3, output_fields=["random"]
+)
 print(f"query pagination(limit=4):\n\t{r1}")
 print(f"query pagination(offset=1, limit=3):\n\t{r2}")
 
@@ -148,7 +166,14 @@ breakpoint()
 print(fmt.format("Start hybrid searching with `random > 0.5`"))
 
 start_time = time.time()
-result = hello_milvus.search(vectors_to_search, "embeddings", search_params, limit=3, expr="random > 0.5", output_fields=["random"])
+result = hello_milvus.search(
+    vectors_to_search,
+    "embeddings",
+    search_params,
+    limit=3,
+    expr="random > 0.5",
+    output_fields=["random"],
+)
 end_time = time.time()
 
 for hits in result:
