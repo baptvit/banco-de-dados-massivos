@@ -16,12 +16,16 @@ if __name__ == "__main__":
         # TO DO: evalutute things
         # TO DO: delete /volumns
 
-        setup_milvus_resources = SetUpMilvusResources(params["collection_name"],
+        setup_milvus_resources = SetUpMilvusResources(
+            params["collection_name"],
             params["index_name"],
             params["index_params"],
-            read_delta_path)
+            read_delta_path,
+        )
         setup_milvus_resources.setup()
 
-        evalutor_milvus = MilvusEvaluator(params["collection_name"], params["index_name"], params["index_params"])
+        evalutor_milvus = MilvusEvaluator(
+            params["collection_name"], params["index_name"], params["index_params"]
+        )
         evalutor_milvus.evaluate()
         breakpoint()
