@@ -2,15 +2,10 @@ import logging
 import sys
 from typing import Dict
 import numpy as np
-from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, FIX_VECTOR
-from pymilvus import (
-    Collection,
-    connections,
-    SearchResult,
-    Hits,
-    Hit
-)
+from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, FIX_VECTOR, NEW_VECTOR_TEST
+from pymilvus import Collection, connections, SearchResult, Hits, Hit
 from milvus_python.benchmark.benchmarking import all_in_one_profile
+
 
 class MilvusEvaluator:
     """
@@ -44,13 +39,14 @@ class MilvusEvaluator:
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(formatter)
 
-        file_handler = logging.FileHandler(f"./milvus_python/logs/evaluate/{index_name}.log")
+        file_handler = logging.FileHandler(
+            f"./milvus_python/logs/evaluate/{index_name}.log"
+        )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
 
         self.logger.addHandler(file_handler)
         self.logger.addHandler(stdout_handler)
-
 
     @all_in_one_profile
     def collection_load(self) -> None:
@@ -76,14 +72,14 @@ class MilvusEvaluator:
         self.collection_load()
 
         search_param = {
-            "data": [np.array(FIX_VECTOR, dtype="float64")],
+            "data": [np.array(NEW_VECTOR_TEST, dtype="float64")],
             "anns_field": "embedding_sentence",
             "param": self.params,
             "limit": top_k,
         }
 
         return self.collection.search(output_fields=["sentence"], **search_param)
-    
+
     def evaluate(self):
         search_results: SearchResult = self.search()
         hit_zero: Hits = search_results[0]
