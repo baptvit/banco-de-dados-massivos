@@ -26,5 +26,5 @@ class DeltaToMilvus:
             delta_path (str): Path to the Delta Lake file.
         """
         delta_df = pd.read_parquet(self.read_path)
-       
+
         self.collection.insert(delta_df)

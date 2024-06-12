@@ -152,16 +152,16 @@ class SetUpMilvusResources:
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(formatter)
 
-        file_handler = logging.FileHandler(f"./milvus_python/logs/setup/{index_name}.log")
+        file_handler = logging.FileHandler(
+            f"./milvus_python/logs/setup/{index_name}.log"
+        )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
 
         self.logger.addHandler(file_handler)
         self.logger.addHandler(stdout_handler)
 
-    def setup(
-        self
-    ) -> None:
+    def setup(self) -> None:
 
         self.logger.info("===========================")
         self.logger.info("")
@@ -170,7 +170,9 @@ class SetUpMilvusResources:
         self.logger.info(f"With index parameters: {self.index_params}")
 
         schema: CollectionSchema = self.create_med_qa_schema()
-        collection: Collection = self.create_med_qa_collection(self.collection_name, schema)
+        collection: Collection = self.create_med_qa_collection(
+            self.collection_name, schema
+        )
         # TO DO: Add collection data step
         DeltaToMilvus(collection, self.read_delta_path).insert_from_delta()
         self.create_med_qa_indexs(collection, self.index_name, self.index_params)
