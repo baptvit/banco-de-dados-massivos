@@ -1,5 +1,3 @@
-import logging
-import sys
 import time
 from typing import Any, Dict
 from milvus_python.setup.setup_insert_milvus import DeltaToMilvus
@@ -10,6 +8,7 @@ from pymilvus import (
     FieldSchema,
     DataType,
     MilvusException,
+    utility
 )
 
 from milvus_python.setup.setup_params_milvus import (
@@ -29,6 +28,7 @@ class SetUpMilvusResources:
         index_name: str,
         index_params: Dict[str, Any],
         read_delta_path: str,
+        logger,
         consistency_level=CONSISTENCY_LEVEL,
         shards_num=SHARDS_NUM,
         sentence_embedding=EMBEDDING_COLUMN,
@@ -38,15 +38,14 @@ class SetUpMilvusResources:
         self.index_name = index_name
         self.index_params = index_params
         self.read_delta_path = read_delta_path
+        self.logger = logger
 
         self.sentence_embedding = sentence_embedding
         self.dimension = dimension
         self.shards_num = shards_num
         self.consistency_level = consistency_level
 
-        self.setup_log(self.index_name)
-
-        logging.info("start connecting to Milvus")
+        self.logger.info("start connecting to Milvus")
         connections.connect("default", host="localhost", port="19530")
 
     def create_med_qa_schema(self) -> CollectionSchema:
@@ -82,13 +81,19 @@ class SetUpMilvusResources:
             description="Dense vector representation of the sentence for similarity search",
         )
 
+        metadata = FieldSchema(
+            name="metadata",
+            dtype=DataType.VARCHAR,
+            max_length=VARCHAR_LENGTH,
+            description="Metadata about the text sentence",
+        )
+
         # Combine fields into the collection schema
         return CollectionSchema(
-            fields=[med_qa_id, sentence, sentence_embedding],
+            fields=[med_qa_id, sentence, sentence_embedding, metadata],
             description="Schema for MedQA collection containing sentence text and embeddings",
         )
 
-    @all_in_one_profile
     def create_med_qa_collection(
         self, collection_name: str, schema: CollectionSchema
     ) -> Collection:
@@ -116,10 +121,9 @@ class SetUpMilvusResources:
                 f"Error creating collection from {collection_name}: {e}"
             ) from e
 
-    @all_in_one_profile
     def create_med_qa_indexs(
         self, collection: Collection, index_name: str, index_params: Dict[str, Any]
-    ) -> None:
+    ) -> int:
         """
         Creates an index on the specified field in the provided Milvus collection.
 
@@ -133,33 +137,21 @@ class SetUpMilvusResources:
         """
 
         try:
-            collection.create_index(
+            start_time = time.time()
+            status = collection.create_index(
                 index_name=index_name,
                 field_name=self.sentence_embedding,
                 index_params=index_params,
             )
+            end_time = time.time()
+            if status.code == 0:
+                return end_time - start_time
+            else:
+                raise
         except MilvusException as e:  # Catch specific Milvus exception
             raise MilvusException(
                 f"Error creating index {index_name} on collection {collection.name}: {e}"
             ) from e
-
-    def setup_log(self, index_name: str) -> None:
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setLevel(logging.DEBUG)
-        stdout_handler.setFormatter(formatter)
-
-        file_handler = logging.FileHandler(
-            f"./milvus_python/logs/setup/{index_name}.log"
-        )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(stdout_handler)
 
     def setup(self) -> None:
 
@@ -173,9 +165,27 @@ class SetUpMilvusResources:
         collection: Collection = self.create_med_qa_collection(
             self.collection_name, schema
         )
-        # TO DO: Add collection data step
-        DeltaToMilvus(collection, self.read_delta_path).insert_from_delta()
-        self.create_med_qa_indexs(collection, self.index_name, self.index_params)
+        time_load = 0
+        if collection.is_empty:
+            self.logger.info(f"Load data from the path: {self.read_delta_path}")
+            time_load = DeltaToMilvus(collection, self.read_delta_path, self.logger).insert_from_delta()
+        
+        time_index = 0
+        if not collection.has_index():
+            time_index = self.create_med_qa_indexs(collection, self.index_name, self.index_params)
+    
         self.logger.info("")
         self.logger.info("===========================")
+        msg = f"Load time: {time_load}, build index time: {time_index}"
+        self.logger.info(msg)
         time.sleep(1)
+
+    def teardown(self) -> None:
+        self.logger.info("===========================")
+        self.logger.info("")
+        self.logger.info(f"Dropping collection name: {self.collection_name}")
+        utility.drop_collection(self.collection_name)
+        time.sleep(1)
+
+
+

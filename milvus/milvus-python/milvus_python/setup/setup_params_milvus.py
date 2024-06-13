@@ -29,13 +29,13 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 # Customized
 
 metric_type_dict = {
-                    "Euclidean_distance": "L2", 
-                    "Inner_product": "IP"
-                    }
+    "Euclidean_distance": "L2",
+    "Inner_product": "IP"
+}
 
 index_type_dict = {
-    #"FLAT": {},
-        "IVF_FLAT": {"nlist": NLIST, "nprobe": CPU},
+    # "FLAT": {},
+    "IVF_FLAT": {"nlist": NLIST, "nprobe": CPU},
     #     "IVF_SQ8": {"nlist": NLIST, "nprobe": CPU},
     #     "IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": CPU},
     #     "HNSW": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},

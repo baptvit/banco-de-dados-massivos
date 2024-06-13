@@ -1,10 +1,9 @@
-import logging
-import sys
-from typing import Dict
+import time
+import re
 import numpy as np
-from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, FIX_VECTOR, NEW_VECTOR_TEST
-from pymilvus import Collection, connections, SearchResult, Hits, Hit
-from milvus_python.benchmark.benchmarking import all_in_one_profile
+from typing import Dict
+from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, NEW_VECTOR_TEST
+from pymilvus import Collection, connections
 
 
 class MilvusEvaluator:
@@ -12,7 +11,7 @@ class MilvusEvaluator:
     A class to evaluate a Milvus collection using vector search.
     """
 
-    def __init__(self, collection_name: str, index_name: str, params: Dict):
+    def __init__(self, collection_name: str, index_name: str, params: Dict, logger):
         """
         Initialize the class with Milvus client and collection name.
 
@@ -24,36 +23,17 @@ class MilvusEvaluator:
         self.collection = Collection(collection_name)
         self.index_name = index_name
         self.params = params
+        self.logger = logger
 
-        self.setup_log(index_name)
-
-        logging.info("start connecting to Milvus")
+        self.logger.info("start connecting to Milvus")
         connections.connect("default", host="localhost", port="19530")
 
-    def setup_log(self, index_name: str) -> None:
-        self.logger = logging.getLogger()
-        self.logger.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
-
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setLevel(logging.DEBUG)
-        stdout_handler.setFormatter(formatter)
-
-        file_handler = logging.FileHandler(
-            f"./milvus_python/logs/evaluate/{index_name}.log"
-        )
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(stdout_handler)
-
-    @all_in_one_profile
-    def collection_load(self) -> None:
+    def collection_load(self) -> int:
+        start_time = time.time()
         self.collection.load()
+        return time.time() - start_time
 
-    @all_in_one_profile
-    def search(self, top_k=1):
+    def search(self, top_k=5):
         """
         Performs a vector search in the collection based on a query vector.
 
@@ -69,20 +49,55 @@ class MilvusEvaluator:
                     (each element is a dictionary with "id" and "distance" keys).
                 - elapsed_time (float): Time taken for the search in milliseconds.
         """
-        self.collection_load()
-
-        search_param = {
+        self.search_param = {
             "data": [np.array(NEW_VECTOR_TEST, dtype="float64")],
             "anns_field": "embedding_sentence",
             "param": self.params,
             "limit": top_k,
         }
-
-        return self.collection.search(output_fields=["sentence"], **search_param)
+        start_time = time.time()
+        output = self.collection.search(output_fields=["sentence"], **self.search_param)
+        return output, (time.time() - start_time)
 
     def evaluate(self):
-        search_results: SearchResult = self.search()
-        hit_zero: Hits = search_results[0]
-        hit: Hit = hit_zero[0]
-        assert hit.to_dict()["entity"]["sentence"] == EXPECT_OUTPUT
-        breakpoint()
+        load_time = self.collection_load()
+        times = []
+        top_1_result = []  # If true, the model is write on top 1 else false
+        top_5_result = []  # If true, the model is write on top 5 results else false
+        costs = []
+        distances = []
+        for attemp in range(
+            10
+        ):  # level of diferent types of testing (vector as input and expect value match)
+            search_results, time = self.search()
+            times.append(time)
+            match = re.search(r"cost: (\d+)", str(search_results))
+            cost = match.group(1)
+            costs.append(cost)
+            retrived_distance = 1
+            for num, hits in enumerate(search_results[0]):
+                # If is first hit
+                top_1 = False
+                top_5 = False
+                retrived_sentence = hits.to_dict()["entity"]["sentence"]
+                retrived_distance = hits.to_dict()["distance"]
+                if retrived_sentence == EXPECT_OUTPUT and num == 0:
+                    top_1 = True
+                    top_5 = True
+                    distances.append(retrived_distance)
+                    break
+                elif retrived_sentence == EXPECT_OUTPUT and num != 0:
+                    top_1 = False
+                    top_5 = True
+                    distances.append(retrived_distance)
+                    break
+                else:
+                    top_1 = False
+                    top_5 = False
+                    distances.append(retrived_distance)
+
+            top_1_result.append(top_1)
+            top_5_result.append(top_5)
+
+            msg = f"Test number {attemp}, Load into memory time {load_time}, Top 1: {top_1}, Within Top 5 {top_5}, Query time: {time}s, Distance {retrived_distance} and with cost {cost}"
+            self.logger.info(msg)

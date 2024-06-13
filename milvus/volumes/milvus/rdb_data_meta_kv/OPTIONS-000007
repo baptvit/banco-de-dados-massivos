@@ -5,7 +5,7 @@
 #
 
 [Version]
-  rocksdb_version=6.27.3
+  rocksdb_version=6.29.5
   options_file_version=1.1
 
 [DBOptions]
@@ -53,6 +53,7 @@
   table_cache_numshardbits=6
   max_file_opening_threads=16
   allow_data_in_errors=false
+  rate_limiter=nullptr
   use_fsync=false
   unordered_write=false
   fail_if_options_file_error=false
@@ -112,7 +113,7 @@
   blob_compaction_readahead_size=0
   inplace_update_num_locks=10000
   arena_block_size=1048576
-  target_file_size_multiplier=1
+  target_file_size_multiplier=2
   prefix_extractor=nullptr
   max_write_buffer_number=2
   blob_compression_type=kNoCompression
@@ -147,7 +148,8 @@
   merge_operator=nullptr
   memtable_factory=SkipListFactory
   memtable_insert_with_hint_prefix_extractor=nullptr
-  num_levels=7
+  compression_per_level=kNoCompression:kNoCompression:kZSTD:kZSTD:kZSTD
+  num_levels=5
   force_consistency_checks=true
   optimize_filters_for_hits=false
   compaction_filter=nullptr
@@ -168,7 +170,7 @@
   index_block_restart_interval=1
   prepopulate_block_cache=kDisable
   block_restart_interval=16
-  block_size=4096
+  block_size=65536
   format_version=5
   partition_filters=false
   block_size_deviation=10
