@@ -29,7 +29,7 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 # Eventually
 # Customized
 
-metric_type_dict = {"Euclidean_distance": "L2", "Inner_product": "IP"}
+metric_type_dict = {"Euclidean_distance": "L2", "Inner_product": "IP", "Cosine_similarity": "COSINE"}
 
 index_type_dict = {
     "FLAT": {},
