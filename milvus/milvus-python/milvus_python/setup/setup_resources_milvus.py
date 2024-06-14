@@ -8,7 +8,7 @@ from pymilvus import (
     FieldSchema,
     DataType,
     MilvusException,
-    utility
+    utility,
 )
 
 from milvus_python.setup.setup_params_milvus import (
@@ -168,12 +168,16 @@ class SetUpMilvusResources:
         time_load = 0
         if collection.is_empty:
             self.logger.info(f"Load data from the path: {self.read_delta_path}")
-            time_load = DeltaToMilvus(collection, self.read_delta_path, self.logger).insert_from_delta()
-        
+            time_load = DeltaToMilvus(
+                collection, self.read_delta_path, self.logger
+            ).insert_from_delta()
+
         time_index = 0
         if not collection.has_index():
-            time_index = self.create_med_qa_indexs(collection, self.index_name, self.index_params)
-    
+            time_index = self.create_med_qa_indexs(
+                collection, self.index_name, self.index_params
+            )
+
         self.logger.info("")
         self.logger.info("===========================")
         msg = f"Load time: {time_load}, build index time: {time_index}"
@@ -186,6 +190,3 @@ class SetUpMilvusResources:
         self.logger.info(f"Dropping collection name: {self.collection_name}")
         utility.drop_collection(self.collection_name)
         time.sleep(1)
-
-
-
