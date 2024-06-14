@@ -4,12 +4,13 @@ LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
 
 EMBEDDING_COLUMN = "embedding_sentence"
-NLIST = 2048  # Number of cluster units MAX 65536
+NLIST = 1024  # Number of cluster units MAX 65536
 CPU = 1024  # nprobe: Number of units to query
 GPU = False  # nprob: Number of units to query
 NPROBE = GPU if GPU else CPU
 m = 1  # Number of factors of product quantization
 NBITS = 8  # [Optional] Number of bits in which each low-dimensional vector is stored. 8 by default
+WITH_RAW_DATA = True
 
 M = 4  # Maximum degree of the node, [4, 64]
 EFCONSTRUCTION = 8  # 	Search scope	[8, 512]
@@ -31,16 +32,24 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 metric_type_dict = {"Euclidean_distance": "L2", "Inner_product": "IP"}
 
 index_type_dict = {
-    # "FLAT": {},
+    "FLAT": {},
     "IVF_FLAT": {"nlist": NLIST, "nprobe": CPU},
-    #     "IVF_SQ8": {"nlist": NLIST, "nprobe": CPU},
-    #     "IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": CPU},
-    #     "HNSW": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},
-    #     "ANNOY": {"n_trees": N_TRESS, "search_k": SEARCH_K}, has problens
-    #     "RHNSW_FLAT": {"M": M, "efConstruction": EFCONSTRUCTION, "PQM": PQM, "ef": EF}, has problens
-    #     "RHNSW_PQ": {"M": M, "efConstruction": EFCONSTRUCTION, "PQM": PQM, "ef": EF}, has problens
-    #     "RHNSW_SQ": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},
-    # }
+    "IVF_SQ8": {"nlist": NLIST, "nprobe": CPU},
+    "IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": CPU},
+    "HNSW": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},
+    "SCANN": {"nlist": NLIST, "with_raw_data": WITH_RAW_DATA},
+}
+
+index_type_dict_gpu = {
+    "GPU_CAGRA": {
+        "intermediate_graph_degree": 32,
+        "graph_degree": 64,
+        "build_algo": "IVF_PQ",
+        "cache_dataset_on_device": True,
+    },
+    "GPU_IVF_FLAT": {"nlist": NLIST, "nprobe": CPU},
+    "GPU_IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": CPU},
+    "GPU_BRUTE_FORCE": {},
 }
 
 
