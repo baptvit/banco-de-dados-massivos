@@ -1,0 +1,8 @@
+[
+    {
+        "original_sentence": "Cosine similarity measures how similar two sentences are in terms of their content and meaning, with a score ranging from -1 (completely dissimilar) to 1 (exactly similar)",
+        "rewrited_sentence": "Cosine similarity captures the meaning-based similarity between sentences, ranging from -1 (completely different) to 1 (identical).",
+        "model_rewrited": "gemini-open-source",
+        "model_rewrited_prompt": "Rewrite the following sentence, without change the overall meaning and semantic: \"\"\"<original_sentence>\"\"\". Print just the text rewrited."
+    }
+]

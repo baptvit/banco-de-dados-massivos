@@ -36,7 +36,9 @@ class DeltaToMilvus:
         start_time = time.time()
         res = self.collection.insert(delta_df)
         total_time = time.time() - start_time
-        self.logger.info(f"Took: {total_time}s to load {res.insert_count} records on colletion")
+        self.logger.info(
+            f"Took: {total_time}s to load {res.insert_count} records on colletion"
+        )
         return total_time
 
     # def create_med_qa_schema(self) -> CollectionSchema:
