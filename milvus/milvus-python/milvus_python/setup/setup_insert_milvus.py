@@ -1,4 +1,5 @@
 import time
+import glob
 from milvus_python.setup.setup_params_milvus import (
     DIM,
     EMBEDDING_COLUMN,
@@ -32,14 +33,30 @@ class DeltaToMilvus:
         Args:
             delta_path (str): Path to the Delta Lake file.
         """
-        delta_df = pd.read_parquet(self.read_path)
-        start_time = time.time()
-        res = self.collection.insert(delta_df)
-        total_time = time.time() - start_time
+
+        parquet_files = glob.glob(f"{self.read_path}/*.parquet")
+
+
+        #files = list(map(lambda x: os.path.join(os.path.abspath(self.read_path), x),os.listdir(self.read_path)))
+        final_time = 0
+        for index, file in enumerate(parquet_files):
+            print(index)
+            print(file)
+            if ".parquet" in file:
+                delta_df = pd.read_parquet(file)
+                delta_df = delta_df.loc[delta_df['token_sentence'] < 500]
+                start_time = time.time()
+                res = self.collection.insert(delta_df)
+                total_time = time.time() - start_time
+                self.logger.info(
+                    f"Took: {total_time}s to load {res.insert_count} records on colletion for batch {index}"
+                )
+                final_time += total_time
+            
         self.logger.info(
-            f"Took: {total_time}s to load {res.insert_count} records on colletion"
-        )
-        return total_time
+                f"Final Took: {final_time}s to load on colletion"
+            )
+        return final_time
 
     # def create_med_qa_schema(self) -> CollectionSchema:
     #     """

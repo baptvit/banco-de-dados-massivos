@@ -25,8 +25,8 @@ def set_up_log(index_name) -> None:
 
 if __name__ == "__main__":
     # Replace with the path to your Delta Lake file
-    read_delta_path = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/tmp/tmp/transformed_dataset_path/"
-
+    #read_delta_path = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/tmp/tmp/transformed_dataset_path/"
+    read_delta_path = "/home/baptvit/Documents/github/mineracao-dados-massivos/data/med-qa-dataset/textbook_transfomed_parquet_partition_64"
     list_params = setup_parameters_milvus()
 
     for params in list_params:

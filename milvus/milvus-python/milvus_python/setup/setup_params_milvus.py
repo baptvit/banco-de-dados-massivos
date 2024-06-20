@@ -19,7 +19,7 @@ PQM = 0  # Number of factors of product quantization	dim ≡ 0 (mod PQM)
 N_TRESS = 512  # The number of methods of space division.	[1, 1024]
 SEARCH_K = 1  # The number of nodes to search. -1 means 5% of the whole data.	{-1} ∪ [top_k, n × n_trees]
 
-VARCHAR_LENGTH = 2000
+VARCHAR_LENGTH = 65535
 DIM = 768  # Dimension of the vector.	[1, 32,768]
 SHARDS_NUM = 1  # Number of the shards for the collection to create.	[1,256]
 CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
@@ -29,7 +29,9 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 # Eventually
 # Customized
 
-metric_type_dict = {"Euclidean_distance": "L2", "Inner_product": "IP", "Cosine_similarity": "COSINE"}
+metric_type_dict = {"Euclidean_distance": "L2", "Inner_product": "IP", 
+                    #"Cosine_similarity": "COSINE"
+                    }
 
 index_type_dict = {
     "FLAT": {},
@@ -40,10 +42,10 @@ index_type_dict = {
     "SCANN": {"nlist": NLIST, "with_raw_data": WITH_RAW_DATA},
 }
 
-index_type_dict_gpu = {
+index_type_dict = {
     "GPU_CAGRA": {
         "intermediate_graph_degree": 32,
-        "graph_degree": 64,
+        "graph_degree": 32,
         "build_algo": "IVF_PQ",
         "cache_dataset_on_device": True,
     },

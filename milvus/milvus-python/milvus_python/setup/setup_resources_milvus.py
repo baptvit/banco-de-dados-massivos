@@ -81,6 +81,12 @@ class SetUpMilvusResources:
             description="Dense vector representation of the sentence for similarity search",
         )
 
+        token_sentence = FieldSchema(
+            name="token_sentence",
+            dtype=DataType.INT64,
+            description="Count token for each sentence",
+        )
+
         metadata = FieldSchema(
             name="metadata",
             dtype=DataType.VARCHAR,
@@ -90,7 +96,7 @@ class SetUpMilvusResources:
 
         # Combine fields into the collection schema
         return CollectionSchema(
-            fields=[med_qa_id, sentence, sentence_embedding, metadata],
+            fields=[med_qa_id, sentence, sentence_embedding, token_sentence, metadata],
             description="Schema for MedQA collection containing sentence text and embeddings",
         )
 

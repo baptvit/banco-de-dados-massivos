@@ -57,6 +57,7 @@ services:
             - driver: nvidia
               capabilities: ["gpu"]
               device_ids: ["0"]
+          
     depends_on:
       - "etcd"
       - "minio"
