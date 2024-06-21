@@ -1,6 +1,8 @@
+import datetime
 import time
 import re
 import numpy as np
+import pandas as pd
 from typing import Dict
 from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, NEW_VECTOR_TEST
 from pymilvus import Collection, connections
@@ -33,7 +35,7 @@ class MilvusEvaluator:
         self.collection.load()
         return time.time() - start_time
 
-    def search(self, top_k=5):
+    def search(self, top_k=10):
         """
         Performs a vector search in the collection based on a query vector.
 
@@ -60,44 +62,81 @@ class MilvusEvaluator:
         return output, (time.time() - start_time)
 
     def evaluate(self):
-        load_time = self.collection_load()
-        times = []
-        top_1_result = []  # If true, the model is write on top 1 else false
-        top_5_result = []  # If true, the model is write on top 5 results else false
-        costs = []
-        distances = []
-        for attemp in range(
+        self.load_time = self.collection_load()
+        self.indexs_name = []
+        self.times = []
+        self.timestamps = []
+        self.top_1_result = []  # If true, the model is write on top 1 else false
+        self.top_5_result = []  # If true, the model is write on top 5 results else false
+        self.top_10_result = [] # If true, the model is write on top 10 results else false
+        self.costs = []
+        self.distances = []
+        self.query_id_result = []
+        for query_id in range(
             10
         ):  # level of diferent types of testing (vector as input and expect value match)
+            self.timestamps.append(datetime.datetime.now())
             search_results, time = self.search()
-            times.append(time)
+            self.times.append(time)
             match = re.search(r"cost: (\d+)", str(search_results))
             cost = match.group(1)
-            costs.append(cost)
+            self.costs.append(cost)
+            self.indexs_name.append(self.index_name)
             retrived_distance = 1
-            for num, hits in enumerate(search_results[0]):
+            for num, hits in enumerate(search_results[0]): #top 10 results
                 # If is first hit
                 top_1 = False
                 top_5 = False
+                top_10 = False
                 retrived_sentence = hits.to_dict()["entity"]["sentence"]
                 retrived_distance = hits.to_dict()["distance"]
                 if retrived_sentence == EXPECT_OUTPUT and num == 0:
                     top_1 = True
                     top_5 = True
-                    distances.append(retrived_distance)
+                    top_10 = True
+                    distance = retrived_distance
                     break
-                elif retrived_sentence == EXPECT_OUTPUT and num != 0:
+                elif retrived_sentence == EXPECT_OUTPUT and num <= 5:
                     top_1 = False
                     top_5 = True
-                    distances.append(retrived_distance)
+                    top_10 = True
+                    distance = retrived_distance
+                    break
+                elif retrived_sentence == EXPECT_OUTPUT and num <= 10:
+                    top_1 = False
+                    top_5 = False
+                    top_10 = True
+                    distance = retrived_distance
                     break
                 else:
                     top_1 = False
                     top_5 = False
-                    distances.append(retrived_distance)
+                    top_10 = False
+                    distance = 1
+                
+            self.distances.append(distance)
 
-            top_1_result.append(top_1)
-            top_5_result.append(top_5)
+            self.top_1_result.append(top_1)
+            self.top_5_result.append(top_5)
+            self.top_10_result.append(top_10)
+            self.query_id_result.append(query_id)
 
-            msg = f"Test number {attemp}, Load into memory time {load_time}, Top 1: {top_1}, Within Top 5 {top_5}, Query time: {time}s, Distance {retrived_distance} and with cost {cost}"
+            msg = f"Query id {query_id}, Load into memory time {self.load_time}, Top 1: {top_1}, Within Top 5 {top_5}, Within Top 10 {top_10} Query time: {time}s, Distance {retrived_distance} and with cost {cost}"
             self.logger.info(msg)
+        self.generate_csv()
+
+    def generate_csv(self) -> None:
+        metrics = {
+            "timestamp": self.timestamps,
+            "index_name": self.indexs_name,
+            "memory_load_duration": self.load_time,
+            "query_id": self.query_id_result,
+            "search_duration": self.times,
+            "top1": self.top_1_result,
+            "top5": self.top_5_result,
+            "top10": self.top_10_result,
+            "distance": self.distances,
+            "query_cost": self.costs,
+        }
+        df = pd.DataFrame(metrics)
+        df.to_csv(f"./milvus_python/results/evaluation/{self.index_name}/.csv")

@@ -33,18 +33,16 @@ class DeltaToMilvus:
         Args:
             delta_path (str): Path to the Delta Lake file.
         """
+        print(f"Starting inserting in collection: {self.collection}")
 
         parquet_files = glob.glob(f"{self.read_path}/*.parquet")
 
-
-        #files = list(map(lambda x: os.path.join(os.path.abspath(self.read_path), x),os.listdir(self.read_path)))
+        # files = list(map(lambda x: os.path.join(os.path.abspath(self.read_path), x),os.listdir(self.read_path)))
         final_time = 0
         for index, file in enumerate(parquet_files):
-            print(index)
-            print(file)
             if ".parquet" in file:
                 delta_df = pd.read_parquet(file)
-                delta_df = delta_df.loc[delta_df['token_sentence'] < 500]
+                delta_df = delta_df.loc[delta_df["token_sentence"] < 500]
                 start_time = time.time()
                 res = self.collection.insert(delta_df)
                 total_time = time.time() - start_time
@@ -52,66 +50,7 @@ class DeltaToMilvus:
                     f"Took: {total_time}s to load {res.insert_count} records on colletion for batch {index}"
                 )
                 final_time += total_time
-            
-        self.logger.info(
-                f"Final Took: {final_time}s to load on colletion"
-            )
+
+        self.logger.info(f"Final Took: {final_time}s to load on colletion")
+        print(f"Final inserting in collection: {self.collection}")
         return final_time
-
-    # def create_med_qa_schema(self) -> CollectionSchema:
-    #     """
-    #     This function defines the schema for the MedQA collection in Milvus.
-
-    #     Returns:
-    #         A CollectionSchema object representing the schema of the MedQA collection.
-    #     """
-
-    #     # Field for MedQA ID
-    #     med_qa_id = FieldSchema(
-    #         name="med_qa_id",
-    #         dtype=DataType.INT64,
-    #         description="Unique identifier for each MedQA entry (primary key)",
-    #         is_primary=True,
-    #         auto_id=True,
-    #     )
-
-    #     # Field for sentence text
-    #     sentence = FieldSchema(
-    #         name="sentence",
-    #         dtype=DataType.VARCHAR,
-    #         max_length=VARCHAR_LENGTH,
-    #         description="The actual text of the sentence in the MedQA entry",
-    #     )
-
-    #     # Field for sentence embedding vector
-    #     sentence_embedding = FieldSchema(
-    #         name=EMBEDDING_COLUMN,
-    #         dtype=DataType.FLOAT_VECTOR,
-    #         dim=DIM,
-    #         description="Dense vector representation of the sentence for similarity search",
-    #     )
-
-    #     metadata = FieldSchema(
-    #         name="metadata",
-    #         dtype=DataType.VARCHAR,
-    #         max_length=VARCHAR_LENGTH,
-    #         description="Metadata about the text sentence",
-    #     )
-
-    #     # Combine fields into the collection schema
-    #     return CollectionSchema(
-    #         fields=[med_qa_id, sentence, sentence_embedding, metadata],
-    #         description="Schema for MedQA collection containing sentence text and embeddings",
-    #     )
-
-    # def insert_bulk_data(self) -> None:
-    #     # Use `from pymilvus import LocalBulkWriter, BulkFileType`
-    #     # when you use pymilvus earlier than 2.4.2
-
-    #     writer = LocalBulkWriter(
-    #         schema=self.create_med_qa_schema(),
-    #         local_path=self.read_path,
-    #         segment_size=512 * 1024 * 1024, # Default value
-    #         file_type=BulkFileType.PARQUET
-    #     )
-    #     writer.commit()

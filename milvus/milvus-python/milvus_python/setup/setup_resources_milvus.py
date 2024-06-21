@@ -1,4 +1,5 @@
 import time
+import pandas as pd
 from typing import Any, Dict
 from milvus_python.setup.setup_insert_milvus import DeltaToMilvus
 from pymilvus import (
@@ -188,6 +189,15 @@ class SetUpMilvusResources:
         self.logger.info("===========================")
         msg = f"Load time: {time_load}, build index time: {time_index}"
         self.logger.info(msg)
+
+        metrics = {
+            "load_datafreme_duration_s": time_load,
+            "build_index_duration_s": time_index,
+            "index_name": self.index_name
+        }
+        df = pd.DataFrame(metrics)
+        df.to_csv(f"./milvus_python/results/setup/{self.index_name}/.csv")
+
         time.sleep(1)
 
     def teardown(self) -> None:
