@@ -57,3 +57,6 @@ Este projeto está sob a Licença MIT.
 Para dúvidas ou sugestões, entre em contato conosco.
 
 poetry run cmdbench --print-averages --save-plot=plot.png python ./milvus_python/run/run_setup.py
+
+
+https://github.com/GoogleCloudPlatform/generative-ai/blob/08795311a905fe451e7f9a592875c92dc49d6498/language/getting-started/intro_palm_api.ipynb

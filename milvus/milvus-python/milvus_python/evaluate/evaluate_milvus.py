@@ -4,7 +4,6 @@ import re
 import numpy as np
 import pandas as pd
 from typing import Dict
-from milvus_python.evaluate.evaluate_parms import EXPECT_OUTPUT, NEW_VECTOR_TEST
 from pymilvus import Collection, connections
 
 
@@ -35,7 +34,7 @@ class MilvusEvaluator:
         self.collection.load()
         return time.time() - start_time
 
-    def search(self, top_k=10):
+    def search(self, query_vector, top_k=10):
         """
         Performs a vector search in the collection based on a query vector.
 
@@ -52,7 +51,7 @@ class MilvusEvaluator:
                 - elapsed_time (float): Time taken for the search in milliseconds.
         """
         self.search_param = {
-            "data": [np.array(NEW_VECTOR_TEST, dtype="float64")],
+            "data": [np.array(query_vector, dtype="float64")],
             "anns_field": "embedding_sentence",
             "param": self.params,
             "limit": top_k,
@@ -61,48 +60,61 @@ class MilvusEvaluator:
         output = self.collection.search(output_fields=["sentence"], **self.search_param)
         return output, (time.time() - start_time)
 
-    def evaluate(self):
+    def evaluate(self, path_csv_test_file: str):
         self.load_time = self.collection_load()
         self.indexs_name = []
         self.times = []
         self.timestamps = []
         self.top_1_result = []  # If true, the model is write on top 1 else false
-        self.top_5_result = []  # If true, the model is write on top 5 results else false
-        self.top_10_result = [] # If true, the model is write on top 10 results else false
+        self.top_5_result = (
+            []
+        )  # If true, the model is write on top 5 results else false
+        self.top_10_result = (
+            []
+        )  # If true, the model is write on top 10 results else false
         self.costs = []
         self.distances = []
         self.query_id_result = []
-        for query_id in range(
-            10
-        ):  # level of diferent types of testing (vector as input and expect value match)
+        
+        # ,sentence,embedding_sentence,token_sentence,metadata,rewrited_sentence,rewrited_sentence_embedding,rewrited_sentence_token_count
+        pd_test = pd.read_csv(path_csv_test_file)
+
+        for rows in pd_test.iterrows():
+            row = rows[1] 
+            query_id = row[0]
+            expected_output = row["sentence"]
+            #input_rewrited_sentence = row["rewrited_sentence"]
+            rewrited_sentence_embedding = row["rewrited_sentence_embedding"]
+            
+            # level of diferent types of testing (vector as input and expect value match)
             self.timestamps.append(datetime.datetime.now())
-            search_results, time = self.search()
+            search_results, time = self.search(rewrited_sentence_embedding)
             self.times.append(time)
             match = re.search(r"cost: (\d+)", str(search_results))
             cost = match.group(1)
             self.costs.append(cost)
             self.indexs_name.append(self.index_name)
             retrived_distance = 1
-            for num, hits in enumerate(search_results[0]): #top 10 results
+            for num, hits in enumerate(search_results[0]):  # top 10 results
                 # If is first hit
                 top_1 = False
                 top_5 = False
                 top_10 = False
                 retrived_sentence = hits.to_dict()["entity"]["sentence"]
                 retrived_distance = hits.to_dict()["distance"]
-                if retrived_sentence == EXPECT_OUTPUT and num == 0:
+                if retrived_sentence == expected_output and num == 0:
                     top_1 = True
                     top_5 = True
                     top_10 = True
                     distance = retrived_distance
                     break
-                elif retrived_sentence == EXPECT_OUTPUT and num <= 5:
+                elif retrived_sentence == expected_output and num <= 5:
                     top_1 = False
                     top_5 = True
                     top_10 = True
                     distance = retrived_distance
                     break
-                elif retrived_sentence == EXPECT_OUTPUT and num <= 10:
+                elif retrived_sentence == expected_output and num <= 10:
                     top_1 = False
                     top_5 = False
                     top_10 = True
@@ -113,7 +125,7 @@ class MilvusEvaluator:
                     top_5 = False
                     top_10 = False
                     distance = 1
-                
+
             self.distances.append(distance)
 
             self.top_1_result.append(top_1)

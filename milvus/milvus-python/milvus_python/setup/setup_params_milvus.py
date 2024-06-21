@@ -34,7 +34,7 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 metric_type_dict = {
     "Euclidean_distance": "L2",
     "Inner_product": "IP",
-    "Cosine_similarity": "COSINE"
+    "Cosine_similarity": "COSINE",
 }
 
 index_type_dict = {
@@ -48,7 +48,7 @@ index_type_dict = {
 
 index_type_dict_gpu = {
     "GPU_CAGRA": {
-        "intermediate_graph_degree": INTERMEDIATE_GRAPH_DEGREE, 
+        "intermediate_graph_degree": INTERMEDIATE_GRAPH_DEGREE,
         "graph_degree": GRAPH_DEGREE,
         "build_algo": "IVF_PQ",
         "cache_dataset_on_device": True,

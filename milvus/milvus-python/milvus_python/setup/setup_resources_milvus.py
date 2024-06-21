@@ -193,7 +193,7 @@ class SetUpMilvusResources:
         metrics = {
             "load_datafreme_duration_s": time_load,
             "build_index_duration_s": time_index,
-            "index_name": self.index_name
+            "index_name": self.index_name,
         }
         df = pd.DataFrame(metrics)
         df.to_csv(f"./milvus_python/results/setup/{self.index_name}/.csv")
