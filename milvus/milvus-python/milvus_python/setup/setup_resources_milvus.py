@@ -1,3 +1,4 @@
+import datetime
 import time
 import pandas as pd
 from typing import Any, Dict
@@ -19,7 +20,6 @@ from milvus_python.setup.setup_params_milvus import (
     SHARDS_NUM,
     VARCHAR_LENGTH,
 )
-from milvus_python.benchmark.benchmarking import all_in_one_profile
 
 
 class SetUpMilvusResources:
@@ -168,37 +168,43 @@ class SetUpMilvusResources:
         self.logger.info(f"Index name: {self.index_name}")
         self.logger.info(f"With index parameters: {self.index_params}")
 
+        self.timestamp = datetime.datetime.now()
+        
         schema: CollectionSchema = self.create_med_qa_schema()
         collection: Collection = self.create_med_qa_collection(
             self.collection_name, schema
         )
-        time_load = 0
+        self.time_load = 0
         if collection.is_empty:
             self.logger.info(f"Load data from the path: {self.read_delta_path}")
-            time_load = DeltaToMilvus(
+            self.time_load = DeltaToMilvus(
                 collection, self.read_delta_path, self.logger
             ).insert_from_delta()
 
-        time_index = 0
+        self.time_index = 0
         if not collection.has_index():
-            time_index = self.create_med_qa_indexs(
+            self.time_index = self.create_med_qa_indexs(
                 collection, self.index_name, self.index_params
             )
 
         self.logger.info("")
         self.logger.info("===========================")
-        msg = f"Load time: {time_load}, build index time: {time_index}"
+        msg = f"Load time: {self.time_load}, build index time: {self.time_index}"
         self.logger.info(msg)
 
-        metrics = {
-            "load_datafreme_duration_s": time_load,
-            "build_index_duration_s": time_index,
-            "index_name": self.index_name,
-        }
-        df = pd.DataFrame(metrics)
-        df.to_csv(f"./milvus_python/results/setup/{self.index_name}/.csv")
+        self.to_dataframe()
 
         time.sleep(1)
+
+    def to_dataframe(self):
+        metrics = [{
+            "timestamp": self.timestamp,
+            "index_name": self.index_name,
+            "load_datafreme_duration_s": self.time_load,
+            "build_index_duration_s": self.time_index,
+        }]
+        df = pd.DataFrame(metrics)
+        df.to_csv(f"/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/results/setup/{self.index_name}.csv")
 
     def teardown(self) -> None:
         self.logger.info("===========================")

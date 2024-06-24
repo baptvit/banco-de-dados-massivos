@@ -18,7 +18,7 @@ def set_up_log(index_name) -> None:
 
 def remove_volume_folder():
     try:
-        folder_path = "/Users/joaobaptista/Documents/personal/banco-de-dados-massivos/milvus/volumes"
+        folder_path = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/volumes"
         shutil.rmtree(folder_path)
         print("Folder and its content removed")
     except Exception as e:

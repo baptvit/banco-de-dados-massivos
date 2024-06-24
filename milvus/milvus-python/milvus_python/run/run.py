@@ -1,15 +1,18 @@
 import os
+import time
 from milvus_python.evaluate.evaluate_milvus import MilvusEvaluator
 from milvus_python.setup.setup_params_milvus import setup_parameters_milvus
 from milvus_python.setup.setup_resources_milvus import SetUpMilvusResources
 from milvus_python.setup.utils import remove_volume_folder, set_up_log
 
-MILVUS_DOCKER_COMPOSE = "/Users/joaobaptista/Documents/personal/banco-de-dados-massivos/milvus/milvus-standalone-docker-compose-gpu.yml"
+MILVUS_DOCKER_COMPOSE = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-standalone-docker-compose-gpu.yml"
 
 if __name__ == "__main__":
     # Replace with the path to your Delta Lake file
-    # read_delta_path = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/tmp/tmp/transformed_dataset_path/"
-    read_delta_path = "/home/baptvit/Documents/github/mineracao-dados-massivos/data/med-qa-dataset/textbook_transfomed_parquet_partition_64"
+    medqa_kb = "/home/baptvit/Documents/github/mineracao-dados-massivos/data/med-qa-dataset/medqa_kb"
+    test_dataset_textbook = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_textbook_test_embedding_1000.csv"
+    #test_dataset_question = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_question_test_embedding_1000.csv"
+
     list_params = setup_parameters_milvus()
 
     for params in list_params:
@@ -21,30 +24,32 @@ if __name__ == "__main__":
             f"docker-compose -f {MILVUS_DOCKER_COMPOSE} up -d"
         )
 
+        time.sleep(10)
+
         # Unpacking the params
         collection_name = params["collection_name"]
         index_name = params["index_name"]
         index_params = params["index_params"]
 
-        # # Setup logging for all tests runned
-        # logger = set_up_log(index_name)
+        # Setup logging for all tests runned
+        logger = set_up_log(index_name)
 
-        # setup_milvus_resources = SetUpMilvusResources(
-        #     collection_name, index_name, index_params, read_delta_path, logger
-        # )
-        # # Run setup - Create collection, Indexs and so on.
-        # setup_milvus_resources.setup()
+        setup_milvus_resources = SetUpMilvusResources(
+            collection_name, index_name, index_params, medqa_kb, logger
+        )
+        # Run setup - Create collection, Indexs and so on.
+        setup_milvus_resources.setup()
 
-        # evalutor_milvus = MilvusEvaluator(
-        #     collection_name, index_name, index_params, logger
-        # )
+        evalutor_milvus = MilvusEvaluator(
+            collection_name, index_name, index_params, logger
+        )
 
-        # # Run queries
-        # # Evalutute things
-        # evalutor_milvus.evaluate()
+        # Run queries
+        # Evalutute things
+        evalutor_milvus.evaluate(test_dataset_textbook)
 
-        # # Delete collection and indexing
-        # setup_milvus_resources.teardown()
+        # Delete collection and indexing
+        setup_milvus_resources.teardown()
 
         # Docker compose down
         os.system(

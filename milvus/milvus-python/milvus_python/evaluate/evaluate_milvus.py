@@ -1,11 +1,12 @@
 import datetime
 import time
 import re
+import ast
 import numpy as np
 import pandas as pd
 from typing import Dict
 from pymilvus import Collection, connections
-
+from multiprocessing import Pool
 
 class MilvusEvaluator:
     """
@@ -50,8 +51,9 @@ class MilvusEvaluator:
                     (each element is a dictionary with "id" and "distance" keys).
                 - elapsed_time (float): Time taken for the search in milliseconds.
         """
+
         self.search_param = {
-            "data": [np.array(query_vector, dtype="float64")],
+            "data": [np.array(ast.literal_eval(query_vector[1:-1]), dtype="float64")],
             "anns_field": "embedding_sentence",
             "param": self.params,
             "limit": top_k,
@@ -137,6 +139,84 @@ class MilvusEvaluator:
             self.logger.info(msg)
         self.generate_csv()
 
+    # def evaluate(self, path_csv_test_file: str):
+    #     self.load_time = self.collection_load()
+    #     self.indexs_name = []
+    #     self.times = []
+    #     self.timestamps = []
+    #     self.top_1_result = []  # If true, the model is write on top 1 else false
+    #     self.top_5_result = (
+    #         []
+    #     )  # If true, the model is write on top 5 results else false
+    #     self.top_10_result = (
+    #         []
+    #     )  # If true, the model is write on top 10 results else false
+    #     self.costs = []
+    #     self.distances = []
+    #     self.query_id_result = []
+        
+    #     # ,sentence,embedding_sentence,token_sentence,metadata,rewrited_sentence,rewrited_sentence_embedding,rewrited_sentence_token_count
+    #     pd_test = pd.read_csv(path_csv_test_file)
+
+    #     with Pool(10) as p:
+    #         p.map(self.run_evaluation, pd_test.iterrows())
+        
+    #     self.generate_csv()
+
+
+    # def run_evaluation(self, rows) -> None:
+    #     row = rows[1] 
+    #     query_id = row[0]
+    #     expected_output = row["sentence"]
+    #     #input_rewrited_sentence = row["rewrited_sentence"]
+    #     rewrited_sentence_embedding = row["rewrited_sentence_embedding"]
+        
+    #     # level of diferent types of testing (vector as input and expect value match)
+    #     self.timestamps.append(datetime.datetime.now())
+    #     search_results, time = self.search(rewrited_sentence_embedding)
+    #     self.times.append(time)
+    #     match = re.search(r"cost: (\d+)", str(search_results))
+    #     cost = match.group(1)
+    #     self.costs.append(cost)
+    #     self.indexs_name.append(self.index_name)
+    #     retrived_distance = 1
+    #     for num, hits in enumerate(search_results[0]):  # top 10 results
+    #         # If is first hit
+    #         top_1 = False
+    #         top_5 = False
+    #         top_10 = False
+    #         retrived_sentence = hits.to_dict()["entity"]["sentence"]
+    #         retrived_distance = hits.to_dict()["distance"]
+    #         if retrived_sentence == expected_output and num == 0:
+    #             top_1 = True
+    #             top_5 = True
+    #             top_10 = True
+    #             distance = retrived_distance
+    #             break
+    #         elif retrived_sentence == expected_output and num <= 5:
+    #             top_1 = False
+    #             top_5 = True
+    #             top_10 = True
+    #             distance = retrived_distance
+    #             break
+    #         elif retrived_sentence == expected_output and num <= 10:
+    #             top_1 = False
+    #             top_5 = False
+    #             top_10 = True
+    #             distance = retrived_distance
+    #             break
+    #         else:
+    #             top_1 = False
+    #             top_5 = False
+    #             top_10 = False
+    #             distance = 1
+
+    #     self.distances.append(distance)
+    #     self.top_1_result.append(top_1)
+    #     self.top_5_result.append(top_5)
+    #     self.top_10_result.append(top_10)
+    #     self.query_id_result.append(query_id)
+
     def generate_csv(self) -> None:
         metrics = {
             "timestamp": self.timestamps,
@@ -151,4 +231,4 @@ class MilvusEvaluator:
             "query_cost": self.costs,
         }
         df = pd.DataFrame(metrics)
-        df.to_csv(f"./milvus_python/results/evaluation/{self.index_name}/.csv")
+        df.to_csv(f"/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/results/evaluation/{self.index_name}.csv")
