@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-22 19:29:09.887671,index_ivf_sq8__cosine_similarity,119.06454133987427,114.55352330207825
