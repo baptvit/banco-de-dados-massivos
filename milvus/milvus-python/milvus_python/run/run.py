@@ -10,8 +10,8 @@ MILVUS_DOCKER_COMPOSE = "/home/baptvit/Documents/github/banco-de-dados-massivos/
 if __name__ == "__main__":
     # Replace with the path to your Delta Lake file
     medqa_kb = "/home/baptvit/Documents/github/mineracao-dados-massivos/data/med-qa-dataset/medqa_kb"
-    test_dataset_textbook = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_textbook_test_embedding_1000.csv"
-    #test_dataset_question = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_question_test_embedding_1000.csv"
+    #test_dataset_textbook = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_textbook_test_embedding_1000.csv"
+    test_dataset_question = "/home/baptvit/Documents/github/banco-de-dados-massivos/milvus/milvus-python/milvus_python/test/data/pd_question_test_embedding_1000.csv"
 
     list_params = setup_parameters_milvus()
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
         # Run queries
         # Evalutute things
-        evalutor_milvus.evaluate(test_dataset_textbook)
+        evalutor_milvus.evaluate(test_dataset_question)
 
         # Delete collection and indexing
         setup_milvus_resources.teardown()
