@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-24 12:30:15.332470,index_flat__inner_product,113.14229488372803,0.5076971054077148

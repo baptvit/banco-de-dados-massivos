@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-24 12:48:45.702664,index_ivf_flat__euclidean_distance,113.11058592796326,95.39298272132874
