@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-30 15:04:45.485460,index_gpu_ivf_pq__euclidean_distance,122.35515093803406,46.12722420692444

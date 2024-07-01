@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-24 21:28:20.675543,index_gpu_cagra__euclidean_distance,118.17865681648254,213.2373504638672

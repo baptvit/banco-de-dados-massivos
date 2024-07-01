@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-25 10:45:18.979086,index_gpu_brute_force__inner_product,207.5391595363617,120.69321823120117

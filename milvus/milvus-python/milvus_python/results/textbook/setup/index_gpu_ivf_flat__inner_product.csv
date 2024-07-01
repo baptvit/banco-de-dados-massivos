@@ -1,0 +1,2 @@
+,timestamp,index_name,load_datafreme_duration_s,build_index_duration_s
+0,2024-06-30 14:55:40.048993,index_gpu_ivf_flat__inner_product,115.96849083900452,82.79939937591553

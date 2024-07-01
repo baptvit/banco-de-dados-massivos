@@ -6,6 +6,8 @@ DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
 EMBEDDING_COLUMN = "embedding_sentence"
 NLIST = 4096  # Number of cluster units MAX 65536
 NPROBE = 32  # nprobe: Number of units to query
+#NLIST = 1024  # Number of cluster units MAX 65536
+#NPROBE = 1  # nprobe: Number of units to query
 m = 8  # Number of factors of product quantization
 NBITS = 4  # [Optional] Number of bits in which each low-dimensional vector is stored. 8 by default
 WITH_RAW_DATA = True
@@ -34,19 +36,19 @@ CONSISTENCY_LEVEL = "Strong"  # Consistency level of the collection to create.
 metric_type_dict = {
     "Euclidean_distance": "L2",
     "Inner_product": "IP",
-    "Cosine_similarity": "COSINE",
+    #"Cosine_similarity": "COSINE",
 }
+
+# index_type_dict = {
+#     "FLAT": {},
+#     "IVF_FLAT": {"nlist": NLIST, "nprobe": NPROBE},
+#     "IVF_SQ8": {"nlist": NLIST, "nprobe": NPROBE},
+#     "IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": NPROBE},
+#     "HNSW": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},
+#     "SCANN": {"nlist": NLIST, "with_raw_data": WITH_RAW_DATA},
+# }
 
 index_type_dict = {
-    "FLAT": {},
-    "IVF_FLAT": {"nlist": NLIST, "nprobe": NPROBE},
-    "IVF_SQ8": {"nlist": NLIST, "nprobe": NPROBE},
-    "IVF_PQ": {"nlist": NLIST, "m": m, "nbits": NBITS, "nprobe": NPROBE},
-    "HNSW": {"M": M, "efConstruction": EFCONSTRUCTION, "ef": EF},
-    "SCANN": {"nlist": NLIST, "with_raw_data": WITH_RAW_DATA},
-}
-
-index_type_dict_gpu = {
     "GPU_CAGRA": {
         "intermediate_graph_degree": INTERMEDIATE_GRAPH_DEGREE,
         "graph_degree": GRAPH_DEGREE,
